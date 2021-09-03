@@ -109,7 +109,7 @@ namespace SymbolicLinkSupport
         {
             CreateFileLink(linkPath, targetPath, false);
         }
-        
+
         public static void CreateFileLink(string linkPath, string targetPath, bool makeTargetPathRelative)
         {
             if (makeTargetPathRelative)
@@ -122,7 +122,7 @@ namespace SymbolicLinkSupport
                 Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
             }
         }
-        
+
         private static string GetTargetPathRelativeToLink(string linkPath, string targetPath, bool linkAndTargetAreDirectories = false)
         {
             string returnPath;
@@ -136,7 +136,7 @@ namespace SymbolicLinkSupport
                 // for directory symlink traversal
                 linkPath = Path.GetDirectoryName(linkPath.TrimEnd(Path.DirectorySeparatorChar));
             }
-            
+
             StringBuilder relativePath = new StringBuilder(maxRelativePathLengthUnicodeChars);
             if (!PathRelativePathToW(relativePath, linkPath, relativePathAttribute, targetPath, relativePathAttribute))
             {
@@ -146,14 +146,51 @@ namespace SymbolicLinkSupport
             else
             {
                 returnPath = relativePath.ToString();
+                //Fix for incorrect relative path when symlink dir in link or target path
+                if (!Exists(returnPath))
+                {
+                    if(ExtractSymlinksTargetsInThePath(ref linkPath) && ExtractSymlinksTargetsInThePath(ref targetPath))
+                    {
+                        if (PathRelativePathToW(relativePath, linkPath, relativePathAttribute, targetPath, relativePathAttribute))
+                        {
+                            returnPath = relativePath.ToString();
+                        }
+                        else
+                        {
+                            Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                            returnPath = targetPath;
+                        }
+                    }
+                }
             }
 
             return returnPath;
 
         }
 
+        /// <summary>
+        /// Get target path from symlink path if the path contains symlink-folder
+        /// </summary>
+        /// <param name="linkPath"></param>
+        private static bool ExtractSymlinksTargetsInThePath(ref string linkPath)
+        {
+            var p = linkPath;
+            var r = Path.GetPathRoot(linkPath);
+            while ((p = Path.GetDirectoryName(p)) != r)
+            {
+                if (GetTarget(p)!=null)
+                {
+                    linkPath = linkPath.Replace(p, GetTarget(p));
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool Exists(string path)
         {
+            path = Path.GetFullPath(path);
             if (!Directory.Exists(path) && !File.Exists(path))
             {
                 return false;
