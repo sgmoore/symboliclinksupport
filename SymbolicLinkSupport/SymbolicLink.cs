@@ -8,7 +8,7 @@ namespace SymbolicLinkSupport
 {
     internal static class SymbolicLink
     {
-        private const uint genericReadAccess = 0x80000000;
+        private const uint mimimumAccess = 0;
 
         private const uint fileFlagsForOpenReparsePointAndBackupSemantics = 0x02200000;
         /// <summary>
@@ -201,7 +201,7 @@ namespace SymbolicLinkSupport
 
         private static SafeFileHandle GetFileHandle(string path)
         {
-            return CreateFile(path, genericReadAccess, shareModeAll, IntPtr.Zero, openExisting,
+            return CreateFile(path, mimimumAccess, shareModeAll, IntPtr.Zero, openExisting,
                 fileFlagsForOpenReparsePointAndBackupSemantics, IntPtr.Zero);
         }
 
