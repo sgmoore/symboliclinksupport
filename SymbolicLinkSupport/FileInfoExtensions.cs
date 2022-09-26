@@ -58,8 +58,21 @@ namespace SymbolicLinkSupport
         /// <exception cref="System.ArgumentException">If the file in question is not a symbolic link.</exception>
         public static string GetSymbolicLinkTarget(this FileInfo it)
         {
-            if (!it.IsSymbolicLink())
-                throw new ArgumentException("file specified is not a symbolic link.");
+            var link = SymbolicLink.GetTarget(it.FullName);
+
+            if (link == null)
+                throw new ArgumentException($"File \"{it.FullName}\" is not a symbolic link.");
+
+            return link;
+        }
+
+        /// <summary>
+        /// Returns the full path to the target of this symbolic link or null if target is not a symbolic link
+        /// </summary>
+        /// <param name="it">The symbolic link in question.</param>
+        /// <returns>The path to the target of the symbolic link or null if not symbolic kink.</returns>
+        public static string GetPossibleSymbolicLinkTarget(this FileInfo it)
+        {
             return SymbolicLink.GetTarget(it.FullName);
         }
     }

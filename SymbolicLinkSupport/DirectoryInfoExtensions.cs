@@ -58,9 +58,21 @@ namespace SymbolicLinkSupport
         /// <exception cref="System.ArgumentException">If the directory in question is not a symbolic link.</exception>
         public static string GetSymbolicLinkTarget(this DirectoryInfo directoryInfo)
         {
-            if (!directoryInfo.IsSymbolicLink())
-                throw new ArgumentException("Specified directory is not a symbolic link.");
+            var link = SymbolicLink.GetTarget(directoryInfo.FullName);
 
+            if (link == null)
+                throw new ArgumentException($"Directory \"{directoryInfo.FullName}\" is not a symbolic link.");
+
+            return link;
+        }
+
+        /// <summary>
+        /// Returns the full path to the target of this symbolic link or null if target is not a symbolic link
+        /// </summary>
+        /// <param name="directoryInfo">The folder in question.</param>
+        /// <returns>The path to the target of the symbolic link or null if not symbolic kink.</returns>
+        public static string GetPossibleSymbolicLinkTarget(this DirectoryInfo directoryInfo)
+        {
             return SymbolicLink.GetTarget(directoryInfo.FullName);
         }
     }
